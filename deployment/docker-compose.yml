@@ -1,0 +1,35 @@
+services:
+  backend:
+    build:
+      context: ../back
+      dockerfile: ../deployment/Dockerfile.back
+    ports:
+      - "${BACKEND_PORT:-5000}:5000"
+    env_file:
+      - .env.production
+    environment:
+      - PORT=5000
+    restart: always
+    networks:
+      - qr-network
+
+  frontend:
+    build:
+      context: ../front
+      dockerfile: ../deployment/Dockerfile.front
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    env_file:
+      - .env.production
+    environment:
+      - PORT=3000
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+    restart: always
+    networks:
+      - qr-network
+
+networks:
+  qr-network:
+    driver: bridge
