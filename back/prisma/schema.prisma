@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ACADEMIC
+  MODERATOR
+  ADMIN
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+
+model Faculty {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  name        String       @unique
+  departments Department[]
+}
+
+model Department {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  facultyId String   @db.ObjectId
+  faculty   Faculty  @relation(fields: [facultyId], references: [id])
+  academics User[]
+}
+
+// Embedded type for Schedule in MongoDB
+type Schedule {
+  day       Int      // 0=Sunday, 1=Monday...
+  startTime String   // "09:00"
+  endTime   String   // "10:30"
+  location  String?
+  courseCode String?
+  isOfficeHour Boolean @default(false)
+}
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(ACADEMIC)
+  bio       String?
+  avatarUrl String?
+  slug      String?  @unique
+  qrCodeUrl String?
+  title     String?  // e.g. Prof. Dr.
+  
+  departmentId String? @db.ObjectId
+  department   Department? @relation(fields: [departmentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // In MongoDB, we can embed schedules directly or keep unrelated.
+  // Using embedded type for simpler access is common in Mongo, but relation is also fine.
+  // For simplicity and atomic updates, let's embed schedules in User as a Json or Composite type,
+  // but Prisma MongoDB supports composite types!
+  schedules Schedule[]
+  
+  requests  Request[] // Requests received by this academic
+}
+
+model StudentVisitor {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  fingerprintId String   @unique
+  ipAddress     String?
+  userAgent     String?
+  metadata      Json?
+  blocked       Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  requests Request[]
+  riskLogs RiskLog[]
+}
+
+model Request {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  studentId   String        @db.ObjectId
+  academicId  String        @db.ObjectId
+  type        String        // "MESSAGE" or "APPOINTMENT"
+  content     String
+  status      RequestStatus @default(PENDING)
+  isRisk      Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  
+  student     StudentVisitor @relation(fields: [studentId], references: [id])
+  academic    User           @relation(fields: [academicId], references: [id])
+}
+
+model RiskLog {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  studentId   String?   @db.ObjectId
+  ipAddress   String
+  action      String
+  riskScore   Int       @default(0)
+  riskLevel   RiskLevel @default(LOW)
+  details     String?
+  createdAt   DateTime  @default(now())
+
+  student     StudentVisitor? @relation(fields: [studentId], references: [id])
+}
