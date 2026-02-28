@@ -63,7 +63,16 @@ Bu komut şunları gerçekleştirir:
 
 ### Yapılandırma
 `deployment/.env.production` dosyası üzerinden portları ve veritabanı bağlantısını özelleştirebilirsiniz.
+```env
+DATABASE_URL="mongodb+srv://<USERNAME>:<PASSWORD>@<CLUSTER_URL>"
+PORT=5000
 
+JWT_SECRET="3f9c7b6e2a8d4f1c9e5b7a2d6c0f8e1b4a9d3c6e7f2b1a8c5d9e0f3a6b7c2d1" //örnek gizli anahtar
+
+NEXT_PUBLIC_API_URL="http://localhost:5005/api"
+FRONTEND_PORT=3000
+BACKEND_PORT=5005
+```
 ## Yol Haritası
 
 Projenin sürdürülebilirliğini sağlamak ve özellik setini genişletmek için planlanan ve yapılan geliştirmeler:
