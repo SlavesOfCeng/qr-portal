@@ -73,6 +73,17 @@ NEXT_PUBLIC_API_URL="http://localhost:5005/api"
 FRONTEND_PORT=3000
 BACKEND_PORT=5005
 ```
+#### .dockerignore _örnek yapılandırma_
+```ignore
+node_modules
+.next
+out
+build
+.env*.local
+.vercel
+dist
+*.log
+```
 ## Yol Haritası
 
 Projenin sürdürülebilirliğini sağlamak ve özellik setini genişletmek için planlanan ve yapılan geliştirmeler:
